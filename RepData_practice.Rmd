@@ -32,7 +32,7 @@ activity <- tbl_df(activity)
 
 ### What is mean total number of steps taken per day?
 
-In this step, I want to know how many steps in total this person moves in each day. So I group the data by date and calculate the daily sum of the steps of 5 minute intervals.
+In this step, I want to know how many steps in total this person moves in each day. So I group the data by date and calculate the daily sum of the steps of 5 minute intervals. There are eight days whose values in the sum of daily steps are NA values. I removed these days from the final data.
 ```{r}
 total_per_day <- activity %>%
     group_by(date) %>%
@@ -40,32 +40,36 @@ total_per_day <- activity %>%
     filter(!is.na(sum))
 ```
 
-Below is what the daily total steps the subject takes in the two months look like in histogram.
+Below is what the daily total steps the subject takes during the two months look like in histogram chart.
 
 ```{r}
 library(ggplot2)
 hist_total <- ggplot(total_per_day,aes(sum)) + xlim(0,25000)
 hist_total + geom_histogram(binwidth=1000,colour = "white",fill = "black",alpha=0.8) +
   xlab("total number of steps taken per day") +
-  ylab("Frequency") + 
+  ylab("Days") + 
   ggtitle("Frequency Distribution of Total Steps Taken Per Day") 
 ```
 
-With daily total steps calculated, I want to know the mean and median value of daily total steps in the two months. I calculate them and assign them to "mean_per_day" and "median_per_day".  
+With daily total steps calculated, I want to know the mean and median value of daily total steps during the two months. I calculate them and assign them to "mean_per_day" and "median_per_day".  
 
 ```{r}
 options(scipen=3, digits=2)
 mean_per_day <- mean(total_per_day$sum)
 median_per_day <- median(total_per_day$sum)
+```
+```{r}
 mean_per_day
 median_per_day
 ```
 
-I found there is no significant difference between the mean total number of steps taken per day,`r mean_per_day`, and its median, `r median_per_day`. So there is little skewness in the distribution of total number od steps taken per day across the two months.
+The numeric difference between the mean total number of steps taken per day,`r mean_per_day`, and its median, `r median_per_day` is around *one* step. The difference is trivial, so there is little skewness in the distribution of total number of steps taken per day across the two months.
 
 ### What is the average daily activity pattern?
 
-In this step, I explore how many steps the subject takes at the same time interval in each day of the two months, and use the results to draw a line plot, in which x-axis represents five-minute intervals and y-axis represents the average number of steps taken in a specific time interval across all days.
+In this step, I explore how many steps the subject takes at the same time interval in each day during the two measured months. In the dataset, one day of 24 hours or 1,440 minutes is divided into 288 ordered five-minute intervals. The value space of 288 five-minute time intervals are stored at the variable of "interval", which starts with 0, increases by a step of 5, and ends at 2355.
+
+I group the dataset by the variable of "interval", and calculate the average value in each of the 288 intervals. A line plot shown below is drawn based on the mutated data. The plot's x-axis represents five-minute intervals, and y-axis represents the average number of steps taken in a specific time interval across all days.
 
 ```{r}
 average_per_day <- activity %>%
@@ -80,11 +84,13 @@ avg_step +
     ylab("average steps")
 ```
 
-Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+Which 5-minute interval contains the maximum number of steps?
 
 ```{r}
 average_per_day[which(average_per_day$avg==max(average_per_day$avg)),]$interval
 ```
+
+The maximum number of steps happen at the 835 interval, or say, during 8:35 to 8:40 a.m. every day.
 
 ### Imputing missing values
 
@@ -109,7 +115,7 @@ new_activity <- activity %>%
     mutate(steps = ifelse(is.na(steps),mean(steps,na.rm=T),steps))
 ```
 
-Then I re-draw a histogram of the total number of steps taken each day, and re-calculate the mean and median total number of steps taken per day.
+Then I re-draw a histogram of the total number of steps taken each day, and .
 
 ```{r}
 new_total_per_day <- new_activity %>%
@@ -121,7 +127,11 @@ new_hist_total + geom_histogram(binwidth=1000,colour = "white",fill = "black",al
   xlab("total number of steps taken per day") +
   ylab("Frequency") + 
   ggtitle("Frequency Distribution of Total Steps Taken Per Day") 
+```
 
+I also re-calculate the mean and median total number of steps taken per day.
+
+```{r}
 new_mean_per_day <- mean(new_total_per_day$sum)
 new_median_per_day <- median(new_total_per_day$sum)
 new_mean_per_day
@@ -132,7 +142,7 @@ The new mean total number of steps taken per day is `r new_mean_per_day`, and th
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
-In this step, I want to if there exist different activity patterns between weekdays and weekends. I build a new factor column up into the "new_activity" dataset, tagging each row with "weekday" or "weekend".
+In this step, I want to know if there exist different activity patterns between weekdays and weekends. I create a new factor variable tagging each row of observations with "weekday" or "weekend" in the “new_activity” dataset.
 
 ```{r}
 weekday  <- c("Monday","Tuesday","Wednesday","Thursday","Friday")
@@ -141,7 +151,7 @@ new_activity <- new_activity %>%
   mutate(day = as.factor(day))
 ```
 
-Then I make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+Then I make two line plots for weekday and weekend of the 5-minute intervals (x-axis) and the average number of steps taken (y-axis).
 
 ```{r}
 new_average_per_day <- new_activity %>% 
